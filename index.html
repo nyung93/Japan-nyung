@@ -1,503 +1,23 @@
-import React, { useState } from 'react';
-import { 
-  MapPin, Edit2, Plus, Train, 
-  Utensils, Coffee, Camera, Plane,
-  Trash2, X, Map, Sparkles, Loader2,
-  ChevronDown, ChevronUp, Navigation, Star
-} from 'lucide-react';
-
-// 다국어 텍스트 사전
-const t = {
-  title: { ko: '도쿄 3박 4일', jp: '東京 3泊4日' },
-  subtitle: { ko: '먹방 & 쇼핑 완전 정복 코스 ✈️', jp: 'グルメ＆ショッピング完全攻略コース ✈️' },
-  summary: { ko: '요약', jp: '概要' },
-  day: { ko: '일차', jp: '日目' },
-  hotplace: { ko: '도쿄 핫플 리스트', jp: '東京ホットスポットリスト' },
-  more: { ko: '더보기', jp: 'もっと見る' },
-  fold: { ko: '접기', jp: '閉じる' },
-  mapBtn: { ko: '지도 열기', jp: '地図を開く' },
-  aiBtn: { ko: 'AI 꿀팁 받기', jp: 'AI ヒント' },
-  aiDone: { ko: '꿀팁 확인완료', jp: 'ヒント確認済み' },
-  aiSuggestBtn: { ko: '일정이 비었나요? AI에게 주변 추천받기', jp: '予定が空いていますか？AIに周辺のおすすめを聞く' },
-  loadingSuggest: { ko: '주변 핫플을 찾는 중입니다...', jp: '周辺のホットスポットを検索中...' },
-  aiSuggestTitle: { ko: 'AI의 맞춤 일정 추천', jp: 'AIのカスタマイズおすすめ日程' },
-  close: { ko: '닫기', jp: '閉じる' },
-  cat: { '음식점': { ko: '음식점', jp: '飲食店' }, '관광': { ko: '관광', jp: '観光' }, '카페': { ko: '카페', jp: 'カフェ' }, '이동': { ko: '이동', jp: '移動' } }
-};
-
-// 업데이트된 일정 데이터 (일본어 번역본 추가)
-const initialSchedule = [
-  // 1일차
-  { id: 1, day: 1, time: '18:35', title: '인천공항 출발', titleJp: '仁川空港 出発', category: '이동', desc: '대한항공 탑승. 설레는 도쿄 여행의 시작!', descJp: '大韓航空搭乗。ワクワクする東京旅行の始まり！', transitInfo: '비행 소요시간 약 2시간 30분', transitInfoJp: '飛行時間 約2時間30分', mapQuery: 'Incheon International Airport' },
-  { id: 2, day: 1, time: '21:05', title: '나리타 공항 도착', titleJp: '成田空港 到着', category: '이동', desc: '도쿄 나리타 공항 도착. 입국 심사 및 수하물 찾기.', descJp: '成田空港到着。入国審査と手荷物受け取り。', transitInfo: '스카이라이너 + 야마노테선 (약 1시간 20분)', transitInfoJp: 'スカイライナー + 山手線 (約1時間20分)', mapQuery: 'Narita International Airport' },
-  { id: 3, day: 1, time: '22:30', title: '이케부쿠로 친구 집 (숙소)', titleJp: '池袋 友人の家（宿）', category: '관광', desc: '숙소 도착 및 짐 풀기. 여행 기간 동안 머물 베이스캠프입니다.', descJp: '宿に到着して荷解き。旅行中のベースキャンプです。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ikebukuro Station' },
-  { id: 4, day: 1, time: '23:00', title: '아부라소바 부라부라 이케부쿠로', titleJp: '油そば ぶらぶら 池袋', category: '음식점', desc: '이케부쿠로의 인기 아부라소바(기름소바) 전문점. 늦은 밤 야식으로 제격입니다.', descJp: '池袋で人気の油そば専門店。深夜の夜食にぴったりです。', transitInfo: '', transitInfoJp: '', mapQuery: 'Aburasoba Burabura Ikebukuro' },
-
-  // 2일차
-  { id: 5, day: 2, time: '10:00', title: '이케부쿠로 출발', titleJp: '池袋 出発', category: '이동', desc: '둘째 날 일정 시작! 가벼운 발걸음으로 출발합니다.', descJp: '2日目の日程開始！軽い足取りで出発します。', transitInfo: '후쿠토신선 -> 치요다선 (약 25분)', transitInfoJp: '副都心線 -> 千代田線 (約25分)', mapQuery: 'Ikebukuro Station' },
-  { id: 6, day: 2, time: '11:00', title: '긴자웨스트 아오야마 가든', titleJp: '銀座ウエスト 青山ガーデン', category: '음식점', desc: '우아한 분위기의 핫케이크 맛집. 테라스 석이 인기가 많아 오픈런을 추천합니다.', descJp: '優雅な雰囲気のホットケーキ名店。テラス席が人気なのでオープンランをお勧めします。', transitInfo: '도보 약 15분', transitInfoJp: '徒歩約15分', mapQuery: 'Ginza West Aoyama Garden' },
-  { id: 7, day: 2, time: '13:00', title: '롯폰기 거리 구경', titleJp: '六本木通り 散策', category: '관광', desc: '세련된 상점과 맛집이 즐비한 거리. 도쿄타워 뷰를 감상하며 산책하기 좋습니다.', descJp: '洗練された店やグルメが立ち並ぶ通り。東京タワーの景色を楽しみながら散策するのに最適です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Roppongi Hills' },
-  { id: 8, day: 2, time: '14:00', title: '롯폰기힐스 하브스 (HARBS)', titleJp: '六本木ヒルズ ハーブス (HARBS)', category: '카페', desc: '신선한 과일 크레이프 케이크가 유명한 인기 디저트 카페.', descJp: '新鮮なフルーツミルクレープが有名な人気デザートカフェ。', transitInfo: '도보 약 15분', transitInfoJp: '徒歩約15分', mapQuery: 'HARBS Roppongi Hills' },
-  { id: 9, day: 2, time: '15:30', title: '아자부다이힐스 소바마에 야마토', titleJp: '麻布台ヒルズ 蕎麦前 やまと', category: '음식점', desc: '도쿄의 새로운 핫플 아자부다이 힐스에서 즐기는 깔끔하고 정갈한 소바.', descJp: '東京の新しいホットスポット麻布台ヒルズで楽しむ、すっきりとした上品な蕎麦。', transitInfo: '아카바네바시역 -> 츠키시마역 오에도선 (약 15분)', transitInfoJp: '赤羽橋駅 -> 月島駅 大江戸線 (約15分)', mapQuery: 'Sobamae Yamato Azabudai Hills' },
-  { id: 10, day: 2, time: '17:00', title: '시바공원', titleJp: '芝公園', category: '관광', desc: '도쿄타워를 가장 아름답게 조망할 수 있는 공원. 피크닉과 사진 촬영 명소입니다.', descJp: '東京タワーを最も美しく眺めることができる公園。ピクニックや写真撮影の名所です。', transitInfo: '유라쿠초선 등 (약 35분)', transitInfoJp: '有楽町線など (約35分)', mapQuery: 'Shiba Park' },
-  { id: 11, day: 2, time: '18:30', title: '츠키시마 몬자야끼', titleJp: '月島 もんじゃ焼き', category: '음식점', desc: '츠키시마 거리에서 즐기는 도쿄 명물. 명란 모찌 치즈 등 다양한 토핑을 즐겨보세요.', descJp: '月島通りで楽しむ東京名物。明太子もちチーズなど様々なトッピングを楽しんでください。', transitInfo: '대중교통 이동', transitInfoJp: '公共交通機関', mapQuery: 'Tsukishima Monja Street' },
-  { id: 12, day: 2, time: '21:00', title: '이케부쿠로 쇼핑 및 복귀', titleJp: '池袋 ショッピング・帰宿', category: '관광', desc: '숙소 근처에서 가벼운 쇼핑 후 하루를 마무리합니다.', descJp: '宿の近くで軽くショッピングをして一日を締めくくります。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
-
-  // 3일차
-  { id: 13, day: 3, time: '10:00', title: '아사쿠사 그릇 쇼핑 (갓파바시)', titleJp: '浅草 器ショッピング (かっぱ橋)', category: '관광', desc: '도구거리에서 예쁜 일본 식기와 주방용품을 둘러보는 재미가 있습니다.', descJp: '道具街で綺麗な和食器やキッチン用品を見て回る楽しみがあります。', transitInfo: '긴자선 (약 15분)', transitInfoJp: '銀座線 (約15分)', mapQuery: 'Kappabashi Dogu Street' },
-  { id: 14, day: 3, time: '12:30', title: '긴자 우나 후지', titleJp: '銀座 うな富士', category: '음식점', desc: '장어 덮밥(히츠마부시)의 정수를 맛볼 수 있는 긴자의 찐 맛집.', descJp: 'うなぎ丼(ひつまぶし)の真髄を味わえる銀座の本物の名店。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ginza Unafuji' },
-  { id: 15, day: 3, time: '14:00', title: "Ken's Coffee Shop", titleJp: "Ken's Coffee Shop", category: '카페', desc: '귀엽고 입체적인 3D 고양이 라떼아트를 즐길 수 있는 이색 카페.', descJp: '可愛くて立体的な3D猫のラテアートを楽しめる異色のカフェ。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Kens Coffee Shop Ginza' },
-  { id: 16, day: 3, time: '15:30', title: '아티존 미술관', titleJp: 'アーティゾン美術館', category: '관광', desc: '인상파부터 현대 미술까지 훌륭한 컬렉션을 자랑하는 도심 속 미술관입니다.', descJp: '印象派から現代美術まで素晴らしいコレクションを誇る都心の中の美術館です。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Artizon Museum' },
-  { id: 17, day: 3, time: '17:00', title: '도쿄역 마루노우치 (바나나 브륄레)', titleJp: '東京駅 丸の内 (バナナブリュレ)', category: '관광', desc: '클래식한 붉은 벽돌 역사를 배경으로 사진을 찍고, 한정판 디저트를 구매합니다.', descJp: 'クラシックな赤レンガの駅舎を背景に写真を撮り、限定デザートを購入します。', transitInfo: '마루노우치선 (약 20분)', transitInfoJp: '丸ノ内線 (約20分)', mapQuery: 'Tokyo Station Marunouchi Square' },
-  { id: 18, day: 3, time: '18:30', title: '시부야 구경', titleJp: '渋谷 散策', category: '관광', desc: '스크램블 교차로와 하치코 동상이 있는 도쿄의 중심. 다양한 쇼핑몰을 구경합니다.', descJp: 'スクランブル交差点とハチ公像がある東京の中心。様々なショッピングモールを見て回ります。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shibuya Crossing' },
-  { id: 19, day: 3, time: '19:30', title: '시부야 야끼니꾸', titleJp: '渋谷 焼肉', category: '음식점', desc: '시부야의 활기찬 분위기 속에서 즐기는 맛있는 야끼니꾸 저녁 식사.', descJp: '渋谷の活気ある雰囲気の中で楽しむ美味しい焼肉の夕食。', transitInfo: '야마노테선 (약 20분)', transitInfoJp: '山手線 (約20分)', mapQuery: 'Yakiniku Shibuya' },
-  { id: 20, day: 3, time: '21:30', title: '이케부쿠로 복귀', titleJp: '池袋 帰宿', category: '이동', desc: '숙소로 돌아와 내일을 위해 휴식합니다.', descJp: '宿に戻り、明日のために休息します。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
-
-  // 4일차
-  { id: 21, day: 4, time: '08:30', title: '아침 식사', titleJp: '朝食', category: '음식점', desc: '이케부쿠로 인근에서 든든하게 아침 식사를 합니다.', descJp: '池袋近辺でしっかり朝食をとります。', transitInfo: '야마노테선 -> 린카이선 (약 45분)', transitInfoJp: '山手線 -> りんかい線 (約45分)', mapQuery: 'Ikebukuro Station' },
-  { id: 22, day: 4, time: '10:30', title: '아리아케 도라에몽 팝업', titleJp: '有明 ドラえもんポップアップ', category: '관광', desc: '팬들을 위한 특별한 전시와 굿즈를 만날 수 있는 기간 한정 팝업 스토어.', descJp: 'ファンのための特別な展示やグッズに出会える期間限定ポップアップストア。', transitInfo: '린카이선 -> 사이쿄선 (약 40분)', transitInfoJp: 'りんかい線 -> 埼京線 (約40分)', mapQuery: 'Ariake, Tokyo' },
-  { id: 23, day: 4, time: '15:00', title: '신주쿠 딸기뷔페', titleJp: '新宿 いちごビュッフェ', category: '카페', desc: '신선하고 달콤한 제철 딸기로 만든 다양한 디저트를 마음껏 즐길 수 있습니다.', descJp: '新鮮で甘い旬のいちごを使った様々なデザートを存分に楽しめます。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shinjuku Station' },
-  { id: 24, day: 4, time: '17:00', title: '신주쿠 쇼핑 (산리오 등)', titleJp: '新宿 ショッピング (サンリオ等)', category: '관광', desc: '대형 백화점과 캐릭터 샵이 몰려있는 신주쿠에서 귀여운 굿즈 쇼핑을 합니다.', descJp: '大型デパートやキャラクターショップが集まる新宿で可愛いグッズのショッピングをします。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Sanrio Shinjuku' },
-  { id: 25, day: 4, time: '19:00', title: '타츠키치 신주쿠', titleJp: '立吉 新宿 (串揚げ)', category: '음식점', desc: '눈앞에서 튀겨주는 고급 쿠시카츠(튀김) 오마카세. 훌륭한 식감이 일품입니다.', descJp: '目の前で揚げてくれる高級串揚げおまかせ。素晴らしい食感が絶品です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Tatsukichi Shinjuku' },
-  { id: 26, day: 4, time: '21:00', title: '오이와케 당고 혼포', titleJp: '追分だんご本舗', category: '카페', desc: '신주쿠의 전통 있는 당고 전문점. 미타라시 당고 등 달콤한 화과자.', descJp: '新宿の伝統あるだんご専門店。みたらしだんごなど甘い和菓子。', transitInfo: '야마노테선 (약 10분)', transitInfoJp: '山手線 (約10分)', mapQuery: 'Oiwake Dango Honpo Shinjuku' },
-  { id: 27, day: 4, time: '21:30', title: '이케부쿠로 복귀 및 짐 찾기', titleJp: '池袋 帰宿・荷物受け取り', category: '이동', desc: '친구 집에서 짐을 찾고 공항으로 갈 준비를 합니다.', descJp: '友人の家で荷物を受け取り、空港へ行く準備をします。', transitInfo: '야마노테선 -> 모노레일 (약 1시간)', transitInfoJp: '山手線 -> モノレール (約1時間)', mapQuery: 'Ikebukuro' },
-  { id: 28, day: 4, time: '22:30', title: '하네다 공항 이동', titleJp: '羽田空港へ移動', category: '이동', desc: '아쉬움을 뒤로하고 하네다 공항으로 이동합니다.', descJp: '名残惜しさを後に羽田空港へ移動します。', transitInfo: '출국 수속', transitInfoJp: '出国手続き', mapQuery: 'Haneda Airport' },
-  
-  // 5일차
-  { id: 29, day: 5, time: '02:00', title: '하네다 공항 출발', titleJp: '羽田空港 出発', category: '이동', desc: '대한항공 탑승. 04:35 인천공항 도착 예정.', descJp: '大韓航空搭乗。04:35仁川空港到着予定。', transitInfo: '', transitInfoJp: '', mapQuery: 'Haneda Airport' },
-];
-
-export default function App() {
-  const [lang, setLang] = useState('ko'); // 언어 상태 추가
-  const [activeDay, setActiveDay] = useState(0); // 0 = 요약 탭
-  const [schedule, setSchedule] = useState(initialSchedule);
-  
-  // UI State
-  const [expandedCards, setExpandedCards] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  
-  const [formData, setFormData] = useState({
-    time: '', title: '', category: '관광', desc: '', transitInfo: '', mapQuery: ''
-  });
-
-  // AI Features State
-  const [aiTips, setAiTips] = useState({});
-  const [loadingTipId, setLoadingTipId] = useState(null);
-  const [aiSuggestion, setAiSuggestion] = useState('');
-  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
-
-  const days = [
-    { num: 0, date: { ko: '주요 핫플', jp: '主要スポット' } },
-    { num: 1, date: { ko: '4/10 (금)', jp: '4/10 (金)' } },
-    { num: 2, date: { ko: '4/11 (토)', jp: '4/11 (土)' } },
-    { num: 3, date: { ko: '4/12 (일)', jp: '4/12 (日)' } },
-    { num: 4, date: { ko: '4/13 (월)', jp: '4/13 (月)' } },
-    { num: 5, date: { ko: '4/14 (화)', jp: '4/14 (火)' } }
-  ];
-
-  const getCategoryTheme = (category) => {
-    switch(category) {
-      case '음식점': return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', icon: <Utensils size={14}/> };
-      case '카페': return { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200', icon: <Coffee size={14}/> };
-      case '관광': return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', icon: <Camera size={14}/> };
-      case '이동': return { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', icon: <Plane size={14}/> };
-      default: return { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', icon: <MapPin size={14}/> };
-    }
-  };
-
-  const currentDaySchedule = schedule
-    .filter(item => item.day === activeDay)
-    .sort((a, b) => a.time.localeCompare(b.time));
-
-  const toggleCard = (id) => {
-    setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  // Gemini API Call Helper
-  const generateGeminiContent = async (prompt) => {
-    const apiKey = ""; // API Key provided by environment
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도쿄 여행 일정표</title>
     
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-      const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "결과를 불러오지 못했습니다.";
-    } catch (error) {
-      return "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-    }
-  };
-
-  const handleGetAiTip = async (item) => {
-    if (aiTips[item.id]) return;
-    setLoadingTipId(item.id);
-    const languageInstruction = lang === 'jp' ? '日本語で' : '한국어로';
-    const prompt = `도쿄 여행 중 '${item.title}'(${item.category})에 방문할 예정입니다. 이곳에서 꼭 알아야 할 꿀팁, 추천 메뉴 등을 2~3문장 이내로 ${languageInstruction} 알려주세요.`;
-    const result = await generateGeminiContent(prompt);
-    setAiTips(prev => ({ ...prev, [item.id]: result }));
-    setLoadingTipId(null);
-  };
-
-  const handleSuggestNext = async () => {
-    if (currentDaySchedule.length === 0) return;
-    const lastItem = currentDaySchedule[currentDaySchedule.length - 1];
-    setLoadingSuggestion(true);
-    const languageInstruction = lang === 'jp' ? '日本語で' : '한국어로';
-    const prompt = `현재 도쿄 여행 중이며, 오늘 마지막 일정이 '${lastItem.title}'(${lastItem.time})입니다. 이 장소 근처에서 이어서 방문하기 좋은 곳(식당, 카페 중 하나)을 추천해주세요. 2~3문장으로 짧게 ${languageInstruction} 알려주세요.`;
-    const result = await generateGeminiContent(prompt);
-    setAiSuggestion(result);
-    setLoadingSuggestion(false);
-  };
-
-  const handleOpenMap = (query) => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
-  };
-
-  // Modal Handlers
-  const openAddModal = () => {
-    setEditingItem(null);
-    setFormData({ time: '12:00', title: '', category: '관광', desc: '', transitInfo: '', mapQuery: '' });
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (item, e) => {
-    e.stopPropagation(); // Prevents accordion toggle
-    setEditingItem(item);
-    setFormData({ ...item });
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    if(confirm('이 일정을 삭제하시겠습니까?')) {
-      setSchedule(schedule.filter(s => s.id !== id));
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (editingItem) {
-      setSchedule(schedule.map(s => s.id === editingItem.id ? { ...formData, id: s.id, day: activeDay === 0 ? editingItem.day : activeDay } : s));
-    } else {
-      setSchedule([...schedule, { ...formData, id: Date.now(), day: activeDay === 0 ? 1 : activeDay }]);
-    }
-    setIsModalOpen(false);
-  };
-
-  // 0번째 탭 (주요 장소 요약) 렌더링 컴포넌트
-  const OverviewTab = () => {
-    const highlights = schedule.filter(item => ['음식점', '관광', '카페'].includes(item.category));
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    return (
-      <div className="space-y-6 animate-fade-in pb-10">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-4">
-          <h2 className="text-lg font-extrabold text-gray-900 flex items-center mb-4">
-            <Star className="text-yellow-400 mr-2" fill="currentColor" size={20} />
-            {t.hotplace[lang]}
-          </h2>
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map(d => {
-              const dayItems = highlights.filter(h => h.day === d);
-              if (dayItems.length === 0) return null;
-              return (
-                <div key={d} className="border-l-2 border-indigo-200 pl-4 py-1">
-                  <h3 className="text-sm font-bold text-indigo-900 mb-2">{d}{t.day[lang]}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {dayItems.map(item => {
-                      const theme = getCategoryTheme(item.category);
-                      const titleToRender = lang === 'jp' && item.titleJp ? item.titleJp : item.title;
-                      return (
-                        <div key={item.id} className={`flex items-center text-xs font-medium px-2.5 py-1.5 rounded-lg border ${theme.bg} ${theme.border} ${theme.text}`}>
-                          <span className="mr-1.5 opacity-70">{theme.icon}</span>
-                          {titleToRender}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  };
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (브라우저에서 JSX 컴파일) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-24 font-sans text-gray-800 selection:bg-indigo-100">
-      
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="px-5 py-6 bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-500 text-white rounded-b-3xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold tracking-tight mb-1">{t.title[lang]}</h1>
-              <p className="text-sm font-medium text-blue-100 opacity-90">{t.subtitle[lang]}</p>
-            </div>
-            
-            {/* KOR | JP Toggle */}
-            <div className="flex bg-white/20 p-1 rounded-lg backdrop-blur-sm shadow-inner ml-2">
-              <button 
-                onClick={() => setLang('ko')} 
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-md transition-all ${lang === 'ko' ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80 hover:text-white'}`}
-              >
-                KOR
-              </button>
-              <button 
-                onClick={() => setLang('jp')} 
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-md transition-all ${lang === 'jp' ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80 hover:text-white'}`}
-              >
-                JP
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Day Tabs */}
-        <div className="flex overflow-x-auto hide-scrollbar px-2 pt-2 bg-[#F8F9FA]">
-          {days.map(day => (
-            <button
-              key={day.num}
-              onClick={() => setActiveDay(day.num)}
-              className={`flex-none mx-1 px-4 py-3 text-sm font-bold rounded-full transition-all whitespace-nowrap ${
-                activeDay === day.num 
-                  ? 'bg-indigo-600 text-white shadow-md' 
-                  : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {day.num === 0 ? t.summary[lang] : `${day.num}${t.day[lang]}`}
-              <span className={`block text-[10px] mt-0.5 font-normal ${activeDay === day.num ? 'text-indigo-200' : 'text-gray-400'}`}>
-                {day.date[lang]}
-              </span>
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-lg mx-auto px-4 mt-6 space-y-4">
-        {activeDay === 0 ? (
-          <OverviewTab />
-        ) : (
-          currentDaySchedule.map((item, index) => {
-            const isExpanded = expandedCards[item.id];
-            const theme = getCategoryTheme(item.category);
-            
-            // 번역 상태에 따른 텍스트 렌더링
-            const titleToRender = lang === 'jp' && item.titleJp ? item.titleJp : item.title;
-            const descToRender = lang === 'jp' && item.descJp ? item.descJp : item.desc;
-            const transitToRender = lang === 'jp' && item.transitInfoJp ? item.transitInfoJp : item.transitInfo;
-            const categoryToRender = t.cat[item.category] ? t.cat[item.category][lang] : item.category;
-
-            return (
-              <div key={item.id} className="animate-fade-in">
-                {/* Timeline Card */}
-                <div 
-                  onClick={() => toggleCard(item.id)}
-                  className={`bg-white rounded-2xl shadow-sm border ${isExpanded ? 'border-indigo-200 shadow-md' : 'border-gray-100 hover:border-gray-200'} transition-all duration-200 cursor-pointer overflow-hidden`}
-                >
-                  <div className="p-4 sm:p-5">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl font-black text-gray-900 tracking-tighter">{item.time}</span>
-                        <span className={`px-2 py-1 rounded-md text-[11px] font-bold border flex items-center ${theme.bg} ${theme.text} ${theme.border}`}>
-                          {categoryToRender}
-                        </span>
-                      </div>
-                      <button onClick={(e) => openEditModal(item, e)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
-                        <Edit2 size={16} />
-                      </button>
-                    </div>
-                    
-                    <h3 className="text-lg font-extrabold text-gray-800 mb-1">{titleToRender}</h3>
-                    
-                    {/* Collapsed View Indicator */}
-                    {!isExpanded && (
-                      <div className="mt-3 flex items-center justify-center text-xs font-semibold text-gray-400">
-                        <ChevronDown size={16} className="mr-1" /> {t.more[lang]}
-                      </div>
-                    )}
-
-                    {/* Expanded Content */}
-                    {isExpanded && (
-                      <div className="mt-4 pt-4 border-t border-gray-100 animate-slide-down">
-                        <p className="text-sm text-gray-600 leading-relaxed mb-4">{descToRender}</p>
-                        
-                        {/* AI Tip Display */}
-                        {aiTips[item.id] && (
-                          <div className="mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-3.5 rounded-xl text-sm text-indigo-900 relative shadow-inner">
-                            <Sparkles size={16} className="absolute top-3.5 left-3 text-indigo-500" />
-                            <p className="pl-7 leading-relaxed font-medium">{aiTips[item.id]}</p>
-                          </div>
-                        )}
-
-                        <div className="flex gap-2 mb-2">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleOpenMap(item.mapQuery); }}
-                            className="flex-1 flex items-center justify-center space-x-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-bold transition-colors"
-                          >
-                            <Map size={16} className="text-blue-500" />
-                            <span>{t.mapBtn[lang]}</span>
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleGetAiTip(item); }}
-                            disabled={loadingTipId === item.id || aiTips[item.id]}
-                            className="flex-1 flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50 disabled:bg-indigo-400"
-                          >
-                            {loadingTipId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                            <span>{aiTips[item.id] ? t.aiDone[lang] : t.aiBtn[lang]}</span>
-                          </button>
-                        </div>
-                        
-                        <div className="mt-4 flex items-center justify-center text-xs font-semibold text-gray-400">
-                          <ChevronUp size={16} className="mr-1" /> {t.fold[lang]}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Inline Transit Info */}
-                {index < currentDaySchedule.length - 1 && transitToRender && (
-                  <div className="flex justify-center my-2.5">
-                    <div className="bg-[#EBF1FF] text-blue-700 text-xs font-semibold px-4 py-1.5 rounded-full flex items-center border border-blue-100 shadow-sm">
-                      <Navigation size={12} className="mr-1.5 opacity-70" />
-                      {transitToRender}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Minimal spacer if no transit info */}
-                {index < currentDaySchedule.length - 1 && !transitToRender && (
-                  <div className="h-4"></div>
-                )}
-              </div>
-            );
-          })
-        )}
-        
-        {/* AI Suggest Next Section */}
-        {activeDay !== 0 && currentDaySchedule.length > 0 && (
-          <div className="mt-8 mb-10 text-center animate-fade-in">
-            {!aiSuggestion && !loadingSuggestion && (
-              <button 
-                onClick={handleSuggestNext}
-                className="inline-flex items-center justify-center px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-2xl text-sm font-bold shadow-sm hover:shadow-md hover:border-purple-300 transition-all"
-              >
-                <Sparkles size={18} className="mr-2 text-purple-500" />
-                {t.aiSuggestBtn[lang]}
-              </button>
-            )}
-            
-            {loadingSuggestion && (
-              <div className="flex items-center justify-center space-x-2 text-purple-600 p-4">
-                <Loader2 size={22} className="animate-spin" />
-                <span className="text-sm font-bold">{t.loadingSuggest[lang]}</span>
-              </div>
-            )}
-
-            {aiSuggestion && (
-              <div className="text-left bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 p-5 rounded-2xl shadow-sm relative">
-                <div className="flex items-center mb-3">
-                  <div className="bg-purple-200 p-1.5 rounded-lg mr-2">
-                    <Sparkles size={16} className="text-purple-700" />
-                  </div>
-                  <h4 className="font-extrabold text-purple-900 text-sm">{t.aiSuggestTitle[lang]}</h4>
-                </div>
-                <p className="text-sm text-purple-800 leading-relaxed font-medium whitespace-pre-wrap">
-                  {aiSuggestion}
-                </p>
-                <button 
-                  onClick={() => setAiSuggestion('')}
-                  className="mt-4 w-full bg-white text-purple-600 py-2 rounded-xl border border-purple-200 text-xs font-bold transition-colors hover:bg-purple-50"
-                >
-                  {t.close[lang]}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </main>
-
-      {/* Floating Action Button */}
-      {activeDay !== 0 && (
-        <button 
-          onClick={openAddModal}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-transform z-40 border-4 border-white"
-        >
-          <Plus size={24} strokeWidth={3} />
-        </button>
-      )}
-
-      {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 transition-opacity">
-          <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
-            <div className="flex justify-between items-center p-5 border-b border-gray-100">
-              <h2 className="text-xl font-extrabold text-gray-900">{editingItem ? (lang === 'jp' ? '日程を修正' : '일정 수정') : (lang === 'jp' ? '新しい日程を追加' : '새 일정 추가')}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-5">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '時間' : '시간'}</label>
-                  <input type="time" required value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all" />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? 'カテゴリ' : '카테고리'}</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all appearance-none">
-                    <option value="관광">{t.cat['관광'][lang]}</option>
-                    <option value="음식점">{t.cat['음식점'][lang]}</option>
-                    <option value="카페">{t.cat['카페'][lang]}</option>
-                    <option value="이동">{t.cat['이동'][lang]}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '場所名 / 日程名' : '장소명 / 일정명'}</label>
-                <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder={lang === 'jp' ? '例: 芝公園' : '예: 시바공원'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '説明 (選択)' : '설명 (선택)'}</label>
-                <textarea rows="2" value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} placeholder={lang === 'jp' ? '場所についての簡単な説明を書いてください。' : '장소에 대한 간단한 설명을 적어주세요.'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all resize-none"></textarea>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? 'Googleマップ 検索語' : '구글 맵 검색어'}</label>
-                <input type="text" value={formData.mapQuery} onChange={e => setFormData({...formData, mapQuery: e.target.value})} placeholder={lang === 'jp' ? '英語/日本語で書くとより正確です。' : '영문/일어로 적으면 더 정확합니다.'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all" />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '次の場所への移動方法 (選択)' : '다음 장소까지 이동 방법 (선택)'}</label>
-                <input type="text" value={formData.transitInfo} onChange={e => setFormData({...formData, transitInfo: e.target.value})} placeholder={lang === 'jp' ? '例: 徒歩15分、山手線(10分)' : '예: 도보 15분, 야마노테선 (10분)'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all" />
-              </div>
-
-              <div className="pt-2 flex space-x-3">
-                {editingItem && (
-                  <button type="button" onClick={() => handleDelete(editingItem.id)} className="flex items-center justify-center px-4 py-3 border border-red-200 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors">
-                    <Trash2 size={20} />
-                  </button>
-                )}
-                <button type="submit" className="flex-1 bg-indigo-600 text-white rounded-xl py-3 font-bold text-sm hover:bg-indigo-700 transition-colors shadow-sm">
-                  {editingItem ? (lang === 'jp' ? '修正完了' : '수정 완료') : (lang === 'jp' ? '日程を追加する' : '일정 추가하기')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Global Styles for Animations & Scrollbar */}
-      <style dangerouslySetInnerHTML={{__html: `
+    <style>
+        /* 글로벌 스타일 및 애니메이션 정의 */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -506,7 +26,444 @@ export default function App() {
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         .animate-slide-down { animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      `}} />
-    </div>
-  );
-}
+    </style>
+</head>
+<body class="bg-[#F8F9FA] selection:bg-indigo-100">
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- 아이콘 컴포넌트 (Lucide 대체용 SVG) ---
+        const MapPin = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+        const Edit2 = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
+        const Plus = ({ size=24, className="", strokeWidth=2 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+        const Train = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h0"/><path d="M16 15h0"/></svg>;
+        const Utensils = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>;
+        const Coffee = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>;
+        const Camera = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>;
+        const Plane = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21.5 4c0 0-2 .5-3.5 2L14.5 9.5 6.3 7.7l-1.6 1.6 6.3 4.2-3.5 3.5-3.2-.8-1.6 1.6 4 1.5 1.5 4 1.6-1.6-.8-3.2 3.5-3.5 4.2 6.3 1.6-1.6z"/></svg>;
+        const Trash2 = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
+        const X = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const MapIcon = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>;
+        const Sparkles = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/></svg>;
+        const Loader2 = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${className} animate-spin`}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
+        const ChevronDown = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"/></svg>;
+        const ChevronUp = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"/></svg>;
+        const Navigation = ({ size=24, className="" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>;
+        const Star = ({ size=24, className="", fill="none" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+
+        // --- 다국어 텍스트 사전 ---
+        const t = {
+            title: { ko: '도쿄 3박 4일', jp: '東京 3泊4日' },
+            subtitle: { ko: '먹방 & 쇼핑 완전 정복 코스 ✈️', jp: 'グルメ＆ショッピング完全攻略コース ✈️' },
+            summary: { ko: '요약', jp: '概要' },
+            day: { ko: '일차', jp: '日目' },
+            hotplace: { ko: '도쿄 핫플 리스트', jp: '東京ホットスポットリスト' },
+            more: { ko: '더보기', jp: 'もっと見る' },
+            fold: { ko: '접기', jp: '閉じる' },
+            mapBtn: { ko: '지도 열기', jp: '地図を開く' },
+            aiBtn: { ko: 'AI 꿀팁 받기', jp: 'AI ヒント' },
+            aiDone: { ko: '꿀팁 확인완료', jp: 'ヒント確認済み' },
+            aiSuggestBtn: { ko: '일정이 비었나요? AI에게 주변 추천받기', jp: '予定が空いていますか？AIに周辺のおすすめを聞く' },
+            loadingSuggest: { ko: '주변 핫플을 찾는 중입니다...', jp: '周辺のホットスポットを検索中...' },
+            aiSuggestTitle: { ko: 'AI의 맞춤 일정 추천', jp: 'AIのカスタマイズおすすめ日程' },
+            close: { ko: '닫기', jp: '閉じる' },
+            cat: { '음식점': { ko: '음식점', jp: '飲食店' }, '관광': { ko: '관광', jp: '観光' }, '카페': { ko: '카페', jp: 'カフェ' }, '이동': { ko: '이동', jp: '移動' } }
+        };
+
+        // --- 일정 데이터 ---
+        const initialSchedule = [
+            { id: 1, day: 1, time: '18:35', title: '인천공항 출발', titleJp: '仁川空港 出発', category: '이동', desc: '대한항공 탑승. 설레는 도쿄 여행의 시작!', descJp: '大韓航空搭乗。ワクワクする東京旅行の始まり！', transitInfo: '비행 소요시간 약 2시간 30분', transitInfoJp: '飛行時間 約2時間30分', mapQuery: 'Incheon International Airport' },
+            { id: 2, day: 1, time: '21:05', title: '나리타 공항 도착', titleJp: '成田空港 到着', category: '이동', desc: '도쿄 나리타 공항 도착. 입국 심사 및 수하물 찾기.', descJp: '成田空港到着。入国審査と手荷物受け取り。', transitInfo: '스카이라이너 + 야마노테선 (약 1시간 20분)', transitInfoJp: 'スカイライナー + 山手線 (約1時間20分)', mapQuery: 'Narita International Airport' },
+            { id: 3, day: 1, time: '22:30', title: '이케부쿠로 친구 집 (숙소)', titleJp: '池袋 友人の家（宿）', category: '관광', desc: '숙소 도착 및 짐 풀기. 여행 기간 동안 머물 베이스캠프입니다.', descJp: '宿に到着して荷解き。旅行中のベースキャンプです。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ikebukuro Station' },
+            { id: 4, day: 1, time: '23:00', title: '아부라소바 부라부라 이케부쿠로', titleJp: '油そば ぶらぶら 池袋', category: '음식점', desc: '이케부쿠로의 인기 아부라소바(기름소바) 전문점. 늦은 밤 야식으로 제격입니다.', descJp: '池袋で人気の油そば専門店。深夜の夜食にぴったりです。', transitInfo: '', transitInfoJp: '', mapQuery: 'Aburasoba Burabura Ikebukuro' },
+
+            { id: 5, day: 2, time: '10:00', title: '이케부쿠로 출발', titleJp: '池袋 出発', category: '이동', desc: '둘째 날 일정 시작! 가벼운 발걸음으로 출발합니다.', descJp: '2日目の日程開始！軽い足取りで出発します。', transitInfo: '후쿠토신선 -> 치요다선 (약 25분)', transitInfoJp: '副都心線 -> 千代田線 (約25分)', mapQuery: 'Ikebukuro Station' },
+            { id: 6, day: 2, time: '11:00', title: '긴자웨스트 아오야마 가든', titleJp: '銀座ウエスト 青山ガーデン', category: '음식점', desc: '우아한 분위기의 핫케이크 맛집. 테라스 석이 인기가 많아 오픈런을 추천합니다.', descJp: '優雅な雰囲気のホットケーキ名店。テラス席が人気なのでオープンランをお勧めします。', transitInfo: '도보 약 15분', transitInfoJp: '徒歩約15分', mapQuery: 'Ginza West Aoyama Garden' },
+            { id: 7, day: 2, time: '13:00', title: '롯폰기 거리 구경', titleJp: '六本木通り 散策', category: '관광', desc: '세련된 상점과 맛집이 즐비한 거리. 도쿄타워 뷰를 감상하며 산책하기 좋습니다.', descJp: '洗練された店やグルメが立ち並ぶ通り。東京タワーの景色を楽しみながら散策するのに最適です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Roppongi Hills' },
+            { id: 8, day: 2, time: '14:00', title: '롯폰기힐스 하브스 (HARBS)', titleJp: '六本木ヒルズ ハーブス (HARBS)', category: '카페', desc: '신선한 과일 크레이프 케이크가 유명한 인기 디저트 카페.', descJp: '新鮮なフルーツミルクレープが有名な人気デザートカフェ。', transitInfo: '도보 약 15분', transitInfoJp: '徒歩約15分', mapQuery: 'HARBS Roppongi Hills' },
+            { id: 9, day: 2, time: '15:30', title: '아자부다이힐스 소바마에 야마토', titleJp: '麻布台ヒルズ 蕎麦前 やまと', category: '음식점', desc: '도쿄의 새로운 핫플 아자부다이 힐스에서 즐기는 깔끔하고 정갈한 소바.', descJp: '東京の新しいホットスポット麻布台ヒルズで楽しむ、すっきりとした上品な蕎麦。', transitInfo: '아카바네바시역 -> 츠키시마역 오에도선 (약 15분)', transitInfoJp: '赤羽橋駅 -> 月島駅 大江戸線 (約15分)', mapQuery: 'Sobamae Yamato Azabudai Hills' },
+            { id: 10, day: 2, time: '17:00', title: '시바공원', titleJp: '芝公園', category: '관광', desc: '도쿄타워를 가장 아름답게 조망할 수 있는 공원. 피크닉과 사진 촬영 명소입니다.', descJp: '東京タワーを最も美しく眺めることができる公園。ピクニックや写真撮影の名所です。', transitInfo: '유라쿠초선 등 (약 35분)', transitInfoJp: '有楽町線など (約35分)', mapQuery: 'Shiba Park' },
+            { id: 11, day: 2, time: '18:30', title: '츠키시마 몬자야끼', titleJp: '月島 もんじゃ焼き', category: '음식점', desc: '츠키시마 거리에서 즐기는 도쿄 명물. 명란 모찌 치즈 등 다양한 토핑을 즐겨보세요.', descJp: '月島通りで楽しむ東京名物。明太子もちチーズなど様々なトッピングを楽しんでください。', transitInfo: '대중교통 이동', transitInfoJp: '公共交通機関', mapQuery: 'Tsukishima Monja Street' },
+            { id: 12, day: 2, time: '21:00', title: '이케부쿠로 쇼핑 및 복귀', titleJp: '池袋 ショッピング・帰宿', category: '관광', desc: '숙소 근처에서 가벼운 쇼핑 후 하루를 마무리합니다.', descJp: '宿の近くで軽くショッピングをして一日を締めくくります。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
+
+            { id: 13, day: 3, time: '10:00', title: '아사쿠사 그릇 쇼핑 (갓파바시)', titleJp: '浅草 器ショッピング (かっぱ橋)', category: '관광', desc: '도구거리에서 예쁜 일본 식기와 주방용품을 둘러보는 재미가 있습니다.', descJp: '道具街で綺麗な和食器やキッチン用品を見て回る楽しみがあります。', transitInfo: '긴자선 (약 15분)', transitInfoJp: '銀座線 (約15分)', mapQuery: 'Kappabashi Dogu Street' },
+            { id: 14, day: 3, time: '12:30', title: '긴자 우나 후지', titleJp: '銀座 うな富士', category: '음식점', desc: '장어 덮밥(히츠마부시)의 정수를 맛볼 수 있는 긴자의 찐 맛집.', descJp: 'うなぎ丼(ひつまぶし)の真髄を味わえる銀座の本物の名店。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ginza Unafuji' },
+            { id: 15, day: 3, time: '14:00', title: "Ken's Coffee Shop", titleJp: "Ken's Coffee Shop", category: '카페', desc: '귀엽고 입체적인 3D 고양이 라떼아트를 즐길 수 있는 이색 카페.', descJp: '可愛くて立体的な3D猫のラテアートを楽しめる異色のカフェ。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Kens Coffee Shop Ginza' },
+            { id: 16, day: 3, time: '15:30', title: '아티존 미술관', titleJp: 'アーティゾン美術館', category: '관광', desc: '인상파부터 현대 미술까지 훌륭한 컬렉션을 자랑하는 도심 속 미술관입니다.', descJp: '印象派から現代美術まで素晴らしいコレクションを誇る都心の中の美術館です。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Artizon Museum' },
+            { id: 17, day: 3, time: '17:00', title: '도쿄역 마루노우치 (바나나 브륄레)', titleJp: '東京駅 丸の内 (バナナブリュレ)', category: '관광', desc: '클래식한 붉은 벽돌 역사를 배경으로 사진을 찍고, 한정판 디저트를 구매합니다.', descJp: 'クラシックな赤レンガの駅舎を背景に写真を撮り、限定デザートを購入します。', transitInfo: '마루노우치선 (약 20분)', transitInfoJp: '丸ノ内線 (約20分)', mapQuery: 'Tokyo Station Marunouchi Square' },
+            { id: 18, day: 3, time: '18:30', title: '시부야 구경', titleJp: '渋谷 散策', category: '관광', desc: '스크램블 교차로와 하치코 동상이 있는 도쿄의 중심. 다양한 쇼핑몰을 구경합니다.', descJp: 'スクランブル交差点とハチ公像がある東京の中心。様々なショッピングモールを見て回ります。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shibuya Crossing' },
+            { id: 19, day: 3, time: '19:30', title: '시부야 야끼니꾸', titleJp: '渋谷 焼肉', category: '음식점', desc: '시부야의 활기찬 분위기 속에서 즐기는 맛있는 야끼니꾸 저녁 식사.', descJp: '渋谷の活気ある雰囲気の中で楽しむ美味しい焼肉の夕食。', transitInfo: '야마노테선 (약 20분)', transitInfoJp: '山手線 (約20分)', mapQuery: 'Yakiniku Shibuya' },
+            { id: 20, day: 3, time: '21:30', title: '이케부쿠로 복귀', titleJp: '池袋 帰宿', category: '이동', desc: '숙소로 돌아와 내일을 위해 휴식합니다.', descJp: '宿に戻り、明日のために休息します。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
+
+            { id: 21, day: 4, time: '08:30', title: '아침 식사', titleJp: '朝食', category: '음식점', desc: '이케부쿠로 인근에서 든든하게 아침 식사를 합니다.', descJp: '池袋近辺でしっかり朝食をとります。', transitInfo: '야마노테선 -> 린카이선 (약 45분)', transitInfoJp: '山手線 -> りんかい線 (約45分)', mapQuery: 'Ikebukuro Station' },
+            { id: 22, day: 4, time: '10:30', title: '아리아케 도라에몽 팝업', titleJp: '有明 ドラえもんポップアップ', category: '관광', desc: '팬들을 위한 특별한 전시와 굿즈를 만날 수 있는 기간 한정 팝업 스토어.', descJp: 'ファンのための特別な展示やグッズに出会える期間限定ポップアップストア。', transitInfo: '린카이선 -> 사이쿄선 (약 40분)', transitInfoJp: 'りんかい線 -> 埼京線 (約40分)', mapQuery: 'Ariake, Tokyo' },
+            { id: 23, day: 4, time: '15:00', title: '신주쿠 딸기뷔페', titleJp: '新宿 いちごビュッフェ', category: '카페', desc: '신선하고 달콤한 제철 딸기로 만든 다양한 디저트를 마음껏 즐길 수 있습니다.', descJp: '新鮮で甘い旬のいちごを使った様々なデザートを存分に楽しめます。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shinjuku Station' },
+            { id: 24, day: 4, time: '17:00', title: '신주쿠 쇼핑 (산리오 등)', titleJp: '新宿 ショッピング (サンリオ等)', category: '관광', desc: '대형 백화점과 캐릭터 샵이 몰려있는 신주쿠에서 귀여운 굿즈 쇼핑을 합니다.', descJp: '大型デパートやキャラクターショップが集まる新宿で可愛いグッズのショッピングをします。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Sanrio Shinjuku' },
+            { id: 25, day: 4, time: '19:00', title: '타츠키치 신주쿠', titleJp: '立吉 新宿 (串揚げ)', category: '음식점', desc: '눈앞에서 튀겨주는 고급 쿠시카츠(튀김) 오마카세. 훌륭한 식감이 일품입니다.', descJp: '目の前で揚げてくれる高級串揚げおまかせ。素晴らしい食感が絶品です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Tatsukichi Shinjuku' },
+            { id: 26, day: 4, time: '21:00', title: '오이와케 당고 혼포', titleJp: '追分だんご本舗', category: '카페', desc: '신주쿠의 전통 있는 당고 전문점. 미타라시 당고 등 달콤한 화과자.', descJp: '新宿の伝統あるだんご専門店。みたらしだんごなど甘い和菓子。', transitInfo: '야마노테선 (약 10분)', transitInfoJp: '山手線 (約10分)', mapQuery: 'Oiwake Dango Honpo Shinjuku' },
+            { id: 27, day: 4, time: '21:30', title: '이케부쿠로 복귀 및 짐 찾기', titleJp: '池袋 帰宿・荷物受け取り', category: '이동', desc: '친구 집에서 짐을 찾고 공항으로 갈 준비를 합니다.', descJp: '友人の家で荷物を受け取り、空港へ行く準備をします。', transitInfo: '야마노테선 -> 모노레일 (약 1시간)', transitInfoJp: '山手線 -> モノレール (約1時間)', mapQuery: 'Ikebukuro' },
+            { id: 28, day: 4, time: '22:30', title: '하네다 공항 이동', titleJp: '羽田空港へ移動', category: '이동', desc: '아쉬움을 뒤로하고 하네다 공항으로 이동합니다.', descJp: '名残惜しさを後に羽田空港へ移動します。', transitInfo: '출국 수속', transitInfoJp: '出国手続き', mapQuery: 'Haneda Airport' },
+            
+            { id: 29, day: 5, time: '02:00', title: '하네다 공항 출발', titleJp: '羽田空港 出発', category: '이동', desc: '대한항공 탑승. 04:35 인천공항 도착 예정.', descJp: '大韓航空搭乗。04:35仁川空港到着予定。', transitInfo: '', transitInfoJp: '', mapQuery: 'Haneda Airport' }
+        ];
+
+        // --- Main App Component ---
+        function App() {
+            const [lang, setLang] = useState('ko');
+            const [activeDay, setActiveDay] = useState(0);
+            const [schedule, setSchedule] = useState(initialSchedule);
+            
+            const [expandedCards, setExpandedCards] = useState({});
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [editingItem, setEditingItem] = useState(null);
+            
+            const [formData, setFormData] = useState({
+                time: '', title: '', category: '관광', desc: '', transitInfo: '', mapQuery: ''
+            });
+
+            const [aiTips, setAiTips] = useState({});
+            const [loadingTipId, setLoadingTipId] = useState(null);
+            const [aiSuggestion, setAiSuggestion] = useState('');
+            const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+
+            const days = [
+                { num: 0, date: { ko: '주요 핫플', jp: '主要スポット' } },
+                { num: 1, date: { ko: '4/10 (금)', jp: '4/10 (金)' } },
+                { num: 2, date: { ko: '4/11 (토)', jp: '4/11 (土)' } },
+                { num: 3, date: { ko: '4/12 (일)', jp: '4/12 (日)' } },
+                { num: 4, date: { ko: '4/13 (월)', jp: '4/13 (月)' } },
+                { num: 5, date: { ko: '4/14 (화)', jp: '4/14 (火)' } }
+            ];
+
+            const getCategoryTheme = (category) => {
+                switch(category) {
+                    case '음식점': return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', icon: <Utensils size={14}/> };
+                    case '카페': return { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200', icon: <Coffee size={14}/> };
+                    case '관광': return { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', icon: <Camera size={14}/> };
+                    case '이동': return { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', icon: <Plane size={14}/> };
+                    default: return { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', icon: <MapPin size={14}/> };
+                }
+            };
+
+            const currentDaySchedule = schedule
+                .filter(item => item.day === activeDay)
+                .sort((a, b) => a.time.localeCompare(b.time));
+
+            const toggleCard = (id) => {
+                setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+            };
+
+            const generateGeminiContent = async (prompt) => {
+                const apiKey = ""; // API Key
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "결과를 불러오지 못했습니다.";
+                } catch (error) {
+                    return "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+                }
+            };
+
+            const handleGetAiTip = async (item) => {
+                if (aiTips[item.id]) return;
+                setLoadingTipId(item.id);
+                const languageInstruction = lang === 'jp' ? '日本語で' : '한국어로';
+                const prompt = `도쿄 여행 중 '${item.title}'(${item.category})에 방문할 예정입니다. 이곳에서 꼭 알아야 할 꿀팁, 추천 메뉴 등을 2~3문장 이내로 ${languageInstruction} 알려주세요.`;
+                const result = await generateGeminiContent(prompt);
+                setAiTips(prev => ({ ...prev, [item.id]: result }));
+                setLoadingTipId(null);
+            };
+
+            const handleSuggestNext = async () => {
+                if (currentDaySchedule.length === 0) return;
+                const lastItem = currentDaySchedule[currentDaySchedule.length - 1];
+                setLoadingSuggestion(true);
+                const languageInstruction = lang === 'jp' ? '日本語で' : '한국어로';
+                const prompt = `현재 도쿄 여행 중이며, 오늘 마지막 일정이 '${lastItem.title}'(${lastItem.time})입니다. 이 장소 근처에서 이어서 방문하기 좋은 곳(식당, 카페 중 하나)을 추천해주세요. 2~3문장으로 짧게 ${languageInstruction} 알려주세요.`;
+                const result = await generateGeminiContent(prompt);
+                setAiSuggestion(result);
+                setLoadingSuggestion(false);
+            };
+
+            const handleOpenMap = (query) => {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
+            };
+
+            const openAddModal = () => {
+                setEditingItem(null);
+                setFormData({ time: '12:00', title: '', category: '관광', desc: '', transitInfo: '', mapQuery: '' });
+                setIsModalOpen(true);
+            };
+
+            const openEditModal = (item, e) => {
+                e.stopPropagation();
+                setEditingItem(item);
+                setFormData({ ...item });
+                setIsModalOpen(true);
+            };
+
+            const handleDelete = (id) => {
+                if(confirm('이 일정을 삭제하시겠습니까?')) {
+                    setSchedule(schedule.filter(s => s.id !== id));
+                    setIsModalOpen(false);
+                }
+            };
+
+            const handleSave = (e) => {
+                e.preventDefault();
+                if (editingItem) {
+                    setSchedule(schedule.map(s => s.id === editingItem.id ? { ...formData, id: s.id, day: activeDay === 0 ? editingItem.day : activeDay } : s));
+                } else {
+                    setSchedule([...schedule, { ...formData, id: Date.now(), day: activeDay === 0 ? 1 : activeDay }]);
+                }
+                setIsModalOpen(false);
+            };
+
+            const OverviewTab = () => {
+                const highlights = schedule.filter(item => ['음식점', '관광', '카페'].includes(item.category));
+                return (
+                    <div className="space-y-6 animate-fade-in pb-10">
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-4">
+                            <h2 className="text-lg font-extrabold text-gray-900 flex items-center mb-4">
+                                <Star className="text-yellow-400 mr-2" fill="currentColor" size={20} />
+                                {t.hotplace[lang]}
+                            </h2>
+                            <div className="space-y-4">
+                                {[1, 2, 3, 4].map(d => {
+                                    const dayItems = highlights.filter(h => h.day === d);
+                                    if (dayItems.length === 0) return null;
+                                    return (
+                                        <div key={d} className="border-l-2 border-indigo-200 pl-4 py-1">
+                                            <h3 className="text-sm font-bold text-indigo-900 mb-2">{d}{t.day[lang]}</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {dayItems.map(item => {
+                                                    const theme = getCategoryTheme(item.category);
+                                                    const titleToRender = lang === 'jp' && item.titleJp ? item.titleJp : item.title;
+                                                    return (
+                                                        <div key={item.id} className={`flex items-center text-xs font-medium px-2.5 py-1.5 rounded-lg border ${theme.bg} ${theme.border} ${theme.text}`}>
+                                                            <span className="mr-1.5 opacity-70">{theme.icon}</span>
+                                                            {titleToRender}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen pb-24 font-sans text-gray-800">
+                    <header className="bg-white shadow-sm sticky top-0 z-40">
+                        <div className="px-5 py-6 bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-500 text-white rounded-b-3xl">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-2xl font-extrabold tracking-tight mb-1">{t.title[lang]}</h1>
+                                    <p className="text-sm font-medium text-blue-100 opacity-90">{t.subtitle[lang]}</p>
+                                </div>
+                                <div className="flex bg-white/20 p-1 rounded-lg backdrop-blur-sm shadow-inner ml-2">
+                                    <button onClick={() => setLang('ko')} className={`px-3 py-1.5 text-xs font-extrabold rounded-md transition-all ${lang === 'ko' ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80 hover:text-white'}`}>KOR</button>
+                                    <button onClick={() => setLang('jp')} className={`px-3 py-1.5 text-xs font-extrabold rounded-md transition-all ${lang === 'jp' ? 'bg-white text-indigo-600 shadow-sm' : 'text-white/80 hover:text-white'}`}>JP</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex overflow-x-auto hide-scrollbar px-2 pt-2 bg-[#F8F9FA]">
+                            {days.map(day => (
+                                <button
+                                    key={day.num}
+                                    onClick={() => setActiveDay(day.num)}
+                                    className={`flex-none mx-1 px-4 py-3 text-sm font-bold rounded-full transition-all whitespace-nowrap ${activeDay === day.num ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'}`}
+                                >
+                                    {day.num === 0 ? t.summary[lang] : `${day.num}${t.day[lang]}`}
+                                    <span className={`block text-[10px] mt-0.5 font-normal ${activeDay === day.num ? 'text-indigo-200' : 'text-gray-400'}`}>{day.date[lang]}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+
+                    <main className="max-w-lg mx-auto px-4 mt-6 space-y-4">
+                        {activeDay === 0 ? <OverviewTab /> : currentDaySchedule.map((item, index) => {
+                            const isExpanded = expandedCards[item.id];
+                            const theme = getCategoryTheme(item.category);
+                            const titleToRender = lang === 'jp' && item.titleJp ? item.titleJp : item.title;
+                            const descToRender = lang === 'jp' && item.descJp ? item.descJp : item.desc;
+                            const transitToRender = lang === 'jp' && item.transitInfoJp ? item.transitInfoJp : item.transitInfo;
+                            const categoryToRender = t.cat[item.category] ? t.cat[item.category][lang] : item.category;
+
+                            return (
+                                <div key={item.id} className="animate-fade-in">
+                                    <div onClick={() => toggleCard(item.id)} className={`bg-white rounded-2xl shadow-sm border ${isExpanded ? 'border-indigo-200 shadow-md' : 'border-gray-100 hover:border-gray-200'} transition-all duration-200 cursor-pointer overflow-hidden`}>
+                                        <div className="p-4 sm:p-5">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <div className="flex items-center space-x-3">
+                                                    <span className="text-xl font-black text-gray-900 tracking-tighter">{item.time}</span>
+                                                    <span className={`px-2 py-1 rounded-md text-[11px] font-bold border flex items-center ${theme.bg} ${theme.text} ${theme.border}`}>{categoryToRender}</span>
+                                                </div>
+                                                <button onClick={(e) => openEditModal(item, e)} className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            </div>
+                                            <h3 className="text-lg font-extrabold text-gray-800 mb-1">{titleToRender}</h3>
+                                            
+                                            {!isExpanded && (
+                                                <div className="mt-3 flex items-center justify-center text-xs font-semibold text-gray-400">
+                                                    <ChevronDown size={16} className="mr-1" /> {t.more[lang]}
+                                                </div>
+                                            )}
+
+                                            {isExpanded && (
+                                                <div className="mt-4 pt-4 border-t border-gray-100 animate-slide-down">
+                                                    <p className="text-sm text-gray-600 leading-relaxed mb-4">{descToRender}</p>
+                                                    
+                                                    {aiTips[item.id] && (
+                                                        <div className="mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 p-3.5 rounded-xl text-sm text-indigo-900 relative shadow-inner">
+                                                            <Sparkles size={16} className="absolute top-3.5 left-3 text-indigo-500" />
+                                                            <p className="pl-7 leading-relaxed font-medium">{aiTips[item.id]}</p>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex gap-2 mb-2">
+                                                        <button onClick={(e) => { e.stopPropagation(); handleOpenMap(item.mapQuery); }} className="flex-1 flex items-center justify-center space-x-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-bold transition-colors">
+                                                            <MapIcon size={16} className="text-blue-500" />
+                                                            <span>{t.mapBtn[lang]}</span>
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleGetAiTip(item); }} disabled={loadingTipId === item.id || aiTips[item.id]} className="flex-1 flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50 disabled:bg-indigo-400">
+                                                            {loadingTipId === item.id ? <Loader2 size={16} /> : <Sparkles size={16} />}
+                                                            <span>{aiTips[item.id] ? t.aiDone[lang] : t.aiBtn[lang]}</span>
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div className="mt-4 flex items-center justify-center text-xs font-semibold text-gray-400">
+                                                        <ChevronUp size={16} className="mr-1" /> {t.fold[lang]}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {index < currentDaySchedule.length - 1 && transitToRender && (
+                                        <div className="flex justify-center my-2.5">
+                                            <div className="bg-[#EBF1FF] text-blue-700 text-xs font-semibold px-4 py-1.5 rounded-full flex items-center border border-blue-100 shadow-sm">
+                                                <Navigation size={12} className="mr-1.5 opacity-70" />
+                                                {transitToRender}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {index < currentDaySchedule.length - 1 && !transitToRender && <div className="h-4"></div>}
+                                </div>
+                            );
+                        })}
+
+                        {activeDay !== 0 && currentDaySchedule.length > 0 && (
+                            <div className="mt-8 mb-10 text-center animate-fade-in">
+                                {!aiSuggestion && !loadingSuggestion && (
+                                    <button onClick={handleSuggestNext} className="inline-flex items-center justify-center px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-2xl text-sm font-bold shadow-sm hover:shadow-md hover:border-purple-300 transition-all">
+                                        <Sparkles size={18} className="mr-2 text-purple-500" />
+                                        {t.aiSuggestBtn[lang]}
+                                    </button>
+                                )}
+                                {loadingSuggestion && (
+                                    <div className="flex items-center justify-center space-x-2 text-purple-600 p-4">
+                                        <Loader2 size={22} />
+                                        <span className="text-sm font-bold">{t.loadingSuggest[lang]}</span>
+                                    </div>
+                                )}
+                                {aiSuggestion && (
+                                    <div className="text-left bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 p-5 rounded-2xl shadow-sm relative">
+                                        <div className="flex items-center mb-3">
+                                            <div className="bg-purple-200 p-1.5 rounded-lg mr-2"><Sparkles size={16} className="text-purple-700" /></div>
+                                            <h4 className="font-extrabold text-purple-900 text-sm">{t.aiSuggestTitle[lang]}</h4>
+                                        </div>
+                                        <p className="text-sm text-purple-800 leading-relaxed font-medium whitespace-pre-wrap">{aiSuggestion}</p>
+                                        <button onClick={() => setAiSuggestion('')} className="mt-4 w-full bg-white text-purple-600 py-2 rounded-xl border border-purple-200 text-xs font-bold transition-colors hover:bg-purple-50">
+                                            {t.close[lang]}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {activeDay !== 0 && (
+                        <button onClick={openAddModal} className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-transform z-40 border-4 border-white">
+                            <Plus size={24} strokeWidth={3} />
+                        </button>
+                    )}
+
+                    {isModalOpen && (
+                        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 transition-opacity">
+                            <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
+                                <div className="flex justify-between items-center p-5 border-b border-gray-100">
+                                    <h2 className="text-xl font-extrabold text-gray-900">{editingItem ? (lang === 'jp' ? '日程を修正' : '일정 수정') : (lang === 'jp' ? '新しい日程を追加' : '새 일정 추가')}</h2>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full"><X size={24} /></button>
+                                </div>
+                                <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-5">
+                                    <div className="flex space-x-4">
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '時間' : '시간'}</label>
+                                            <input type="time" required value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? 'カテゴリ' : '카테고리'}</label>
+                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                                                <option value="관광">{t.cat['관광'][lang]}</option>
+                                                <option value="음식점">{t.cat['음식점'][lang]}</option>
+                                                <option value="카페">{t.cat['카페'][lang]}</option>
+                                                <option value="이동">{t.cat['이동'][lang]}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '場所名 / 日程名' : '장소명 / 일정명'}</label>
+                                        <input type="text" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder={lang === 'jp' ? '例: 芝公園' : '예: 시바공원'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '説明 (選択)' : '설명 (선택)'}</label>
+                                        <textarea rows="2" value={formData.desc} onChange={e => setFormData({...formData, desc: e.target.value})} placeholder={lang === 'jp' ? '場所についての簡単な説明を書いてください。' : '장소에 대한 간단한 설명을 적어주세요.'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none resize-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? 'Googleマップ 検索語' : '구글 맵 검색어'}</label>
+                                        <input type="text" value={formData.mapQuery} onChange={e => setFormData({...formData, mapQuery: e.target.value})} placeholder={lang === 'jp' ? '英語/日本語で書くとより正確です。' : '영문/일어로 적으면 더 정확합니다.'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-2">{lang === 'jp' ? '次の場所への移動方法 (選択)' : '다음 장소까지 이동 방법 (선택)'}</label>
+                                        <input type="text" value={formData.transitInfo} onChange={e => setFormData({...formData, transitInfo: e.target.value})} placeholder={lang === 'jp' ? '例: 徒歩15分、山手線(10分)' : '예: 도보 15분, 야마노테선 (10분)'} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                    </div>
+                                    <div className="pt-2 flex space-x-3">
+                                        {editingItem && (
+                                            <button type="button" onClick={() => handleDelete(editingItem.id)} className="flex items-center justify-center px-4 py-3 border border-red-200 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors">
+                                                <Trash2 size={20} />
+                                            </button>
+                                        )}
+                                        <button type="submit" className="flex-1 bg-indigo-600 text-white rounded-xl py-3 font-bold text-sm hover:bg-indigo-700 transition-colors shadow-sm">
+                                            {editingItem ? (lang === 'jp' ? '修正完了' : '수정 완료') : (lang === 'jp' ? '日程を追加する' : '일정 추가하기')}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // --- Render Application ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
