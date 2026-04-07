@@ -73,13 +73,15 @@
             cat: { '음식점': { ko: '음식점', jp: '飲食店' }, '관광': { ko: '관광', jp: '観光' }, '카페': { ko: '카페', jp: 'カフェ' }, '이동': { ko: '이동', jp: '移動' } }
         };
 
-        // --- 일정 데이터 ---
+        // --- 일정 데이터 (수정 사항 완벽 반영) ---
         const initialSchedule = [
+            // 1일차
             { id: 1, day: 1, time: '18:35', title: '인천공항 출발', titleJp: '仁川空港 出発', category: '이동', desc: '대한항공 탑승. 설레는 도쿄 여행의 시작!', descJp: '大韓航空搭乗。ワクワクする東京旅行の始まり！', transitInfo: '비행 소요시간 약 2시간 30분', transitInfoJp: '飛行時間 約2時間30分', mapQuery: 'Incheon International Airport' },
             { id: 2, day: 1, time: '21:05', title: '나리타 공항 도착', titleJp: '成田空港 到着', category: '이동', desc: '도쿄 나리타 공항 도착. 입국 심사 및 수하물 찾기.', descJp: '成田空港到着。入国審査と手荷物受け取り。', transitInfo: '스카이라이너 + 야마노테선 (약 1시간 20분)', transitInfoJp: 'スカイライナー + 山手線 (約1時間20分)', mapQuery: 'Narita International Airport' },
             { id: 3, day: 1, time: '22:30', title: '이케부쿠로 친구 집 (숙소)', titleJp: '池袋 友人の家（宿）', category: '관광', desc: '숙소 도착 및 짐 풀기. 여행 기간 동안 머물 베이스캠프입니다.', descJp: '宿に到着して荷解き。旅行中のベースキャンプです。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ikebukuro Station' },
             { id: 4, day: 1, time: '23:00', title: '아부라소바 부라부라 이케부쿠로', titleJp: '油そば ぶらぶら 池袋', category: '음식점', desc: '이케부쿠로의 인기 아부라소바(기름소바) 전문점. 늦은 밤 야식으로 제격입니다.', descJp: '池袋で人気の油そば専門店。深夜の夜食にぴったりです。', transitInfo: '', transitInfoJp: '', mapQuery: 'Aburasoba Burabura Ikebukuro' },
 
+            // 2일차
             { id: 5, day: 2, time: '10:00', title: '이케부쿠로 출발', titleJp: '池袋 出発', category: '이동', desc: '둘째 날 일정 시작! 가벼운 발걸음으로 출발합니다.', descJp: '2日目の日程開始！軽い足取りで出発します。', transitInfo: '후쿠토신선 -> 치요다선 (약 25분)', transitInfoJp: '副都心線 -> 千代田線 (約25分)', mapQuery: 'Ikebukuro Station' },
             { id: 6, day: 2, time: '11:00', title: '긴자웨스트 아오야마 가든', titleJp: '銀座ウエスト 青山ガーデン', category: '음식점', desc: '우아한 분위기의 핫케이크 맛집. 테라스 석이 인기가 많아 오픈런을 추천합니다.', descJp: '優雅な雰囲気のホットケーキ名店。テラス席が人気なのでオープンランをお勧めします。', transitInfo: '도보 약 15분', transitInfoJp: '徒歩約15分', mapQuery: 'Ginza West Aoyama Garden' },
             { id: 7, day: 2, time: '13:00', title: '롯폰기 거리 구경', titleJp: '六本木通り 散策', category: '관광', desc: '세련된 상점과 맛집이 즐비한 거리. 도쿄타워 뷰를 감상하며 산책하기 좋습니다.', descJp: '洗練された店やグルメが立ち並ぶ通り。東京タワーの景色を楽しみながら散策するのに最適です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Roppongi Hills' },
@@ -89,17 +91,22 @@
             { id: 11, day: 2, time: '18:30', title: '4RO (몬자야끼)', titleJp: '4RO (もんじゃ焼き)', category: '음식점', desc: '세련된 분위기에서 즐기는 트렌디한 퓨전 몬자야끼 맛집입니다.', descJp: '洗練された雰囲気で楽しむトレンディなフュージョンもんじゃ焼きの名店です。', transitInfo: '대중교통 이동', transitInfoJp: '公共交通機関', mapQuery: '4RO Tokyo' },
             { id: 12, day: 2, time: '21:00', title: '이케부쿠로 쇼핑 및 복귀', titleJp: '池袋 ショッピング・帰宿', category: '관광', desc: '숙소 근처에서 가벼운 쇼핑 후 하루를 마무리합니다.', descJp: '宿の近くで軽くショッピングをして一日を締めくくります。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
 
+            // 3일차
+            { id: 32, day: 3, time: '09:00', title: '커피숍 카리브 (コーヒーショップ カリブ)', titleJp: 'コーヒーショップ カリブ', category: '카페', desc: '아사쿠사 인근의 레트로한 킷사텐. 모닝 커피와 함께 아침을 엽니다.', descJp: '浅草近くのレトロな喫茶店。モーニングコーヒーと共に朝を始めます。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Coffee Shop Carib Asakusa' },
             { id: 13, day: 3, time: '10:00', title: '아사쿠사 그릇 쇼핑 (갓파바시)', titleJp: '浅草 器ショッピング (かっぱ橋)', category: '관광', desc: '도구거리에서 예쁜 일본 식기와 주방용품을 둘러보는 재미가 있습니다.', descJp: '道具街で綺麗な和食器やキッチン用品を見て回る楽しみがあります。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Kappabashi Dogu Street' },
-            { id: 30, day: 3, time: '11:30', title: '아사쿠사 길거리 간식', titleJp: '浅草 食べ歩き', category: '음식점', desc: '아사쿠사 일대에서 당고, 멘치카츠 등 맛있는 길거리 간식을 즐깁니다.', descJp: '浅草一帯で団子やメンチカツなど美味しい食べ歩きを楽しみます。', transitInfo: '긴자선 (약 15분)', transitInfoJp: '銀座線 (約15分)', mapQuery: 'Asakusa Nakamise' },
+            { id: 33, day: 3, time: '11:00', title: '아사쿠사 실크푸딩', titleJp: '浅草シルクプリン', category: '카페', desc: '입안에서 사르르 녹는 부드러운 실크 푸딩. 그릇 쇼핑 중 달콤한 당 충전!', descJp: '口の中でとろける滑らかなシルクプリン。器ショッピング中の甘い糖分補給！', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Asakusa Silk Pudding' },
+            { id: 30, day: 3, time: '11:30', title: '아사쿠사 길거리 간식', titleJp: '浅草 食べ歩き', category: '음식점', desc: '아사쿠사 일대에서 당고, 멘치카츠 등 맛있는 길거리 간식을 즐깁니다.', descJp: '浅草一帯で団子やメンチカツなど美味しい食べ歩きを楽しみます。', transitInfo: '긴자선 (약 20분)', transitInfoJp: '銀座線 (約20分)', mapQuery: 'Asakusa Nakamise' },
             { id: 14, day: 3, time: '13:30', title: '긴자 우나 후지 (13:30 예약)', titleJp: '銀座 うな富士 (13:30 予約)', category: '음식점', desc: '장어 덮밥(히츠마부시)의 정수를 맛볼 수 있는 긴자의 찐 맛집.', descJp: 'うなぎ丼(ひつまぶし)の真髄を味わえる銀座の本物の名店。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Ginza Unafuji' },
-            { id: 15, day: 3, time: '15:00', title: "Ken's Coffee Shop", titleJp: "Ken's Coffee Shop", category: '카페', desc: '귀엽고 입체적인 3D 고양이 라떼아트를 즐길 수 있는 이색 카페.', descJp: '可愛くて立体的な3D猫のラテアートを楽しめる異色のカフェ。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Kens Coffee Shop Ginza' },
-            { id: 16, day: 3, time: '16:00', title: '아티존 미술관', titleJp: 'アーティゾン美術館', category: '관광', desc: '인상파부터 현대 미술까지 훌륭한 컬렉션을 자랑하는 도심 속 미술관입니다.', descJp: '印象派から現代美術まで素晴らしいコレクションを誇る都心の中の美術館です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Artizon Museum' },
-            { id: 31, day: 3, time: '17:00', title: '미술관 인근 쇼핑', titleJp: '美術館周辺 ショッピング', category: '관광', desc: '아티존 미술관 관람 후 긴자/도쿄역 주변 매장들을 구경하며 쇼핑합니다.', descJp: 'アーティゾン美術館観覧後、銀座・東京駅周辺の店舗を見て回りショッピングします。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Kyobashi Edogrand' },
-            { id: 17, day: 3, time: '18:00', title: '도쿄역 마루노우치 (바나나 브륄레)', titleJp: '東京駅 丸の内 (バナナブリュレ)', category: '관광', desc: '클래식한 붉은 벽돌 역사를 배경으로 사진을 찍고, 한정판 디저트를 구매합니다.', descJp: 'クラシックな赤レンガの駅舎を背景に写真を撮り、限定デザートを購入します。', transitInfo: '마루노우치선 (약 20분)', transitInfoJp: '丸ノ内線 (約20分)', mapQuery: 'Tokyo Station Marunouchi Square' },
-            { id: 18, day: 3, time: '19:00', title: '시부야 구경 및 쇼핑 (몽벨, 유니클로 등)', titleJp: '渋谷 散策＆ショッピング', category: '관광', desc: '도쿄의 중심 시부야에서 몽벨, 유니클로 등 주요 매장을 방문하며 폭풍 쇼핑!', descJp: '東京の中心・渋谷でモンベル、ユニクロなど主要店舗を訪問しショッピング！', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shibuya Crossing' },
+            { id: 34, day: 3, time: '14:40', title: 'Age.3 (튀김 샌드위치 전문점)', titleJp: '揚げサンド専門店 Age.3', category: '카페', desc: '긴자에서 핫한 튀김 샌드위치 전문점. 바삭하고 달콤한 이색 디저트입니다.', descJp: '銀座で話題の揚げサンド専門店。サクサクして甘い異色のデザートです。', transitInfo: '도보 약 5분', transitInfoJp: '徒歩約5分', mapQuery: 'Age.3 Ginza' },
+            { id: 15, day: 3, time: '15:20', title: "Ken's Coffee Shop", titleJp: "Ken's Coffee Shop", category: '카페', desc: '귀엽고 입체적인 3D 고양이 라떼아트를 즐길 수 있는 이색 카페.', descJp: '可愛くて立体的な3D猫のラテアートを楽しめる異色のカフェ。', transitInfo: '도보 약 10분', transitInfoJp: '徒歩約10分', mapQuery: 'Kens Coffee Shop Ginza' },
+            { id: 16, day: 3, time: '16:15', title: '아티존 미술관', titleJp: 'アーティゾン美術館', category: '관광', desc: '인상파부터 현대 미술까지 훌륭한 컬렉션을 자랑하는 도심 속 미술관입니다.', descJp: '印象派から現代美術まで素晴らしいコレクションを誇る都心の中の美術館です。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Artizon Museum' },
+            { id: 31, day: 3, time: '17:15', title: '미술관 인근 쇼핑', titleJp: '美術館周辺 ショッピング', category: '관광', desc: '아티존 미술관 관람 후 긴자/도쿄역 주변 매장들을 구경하며 쇼핑합니다.', descJp: 'アーティゾン美術館観覧後、銀座・東京駅周辺の店舗を見て回りショッピングします。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Kyobashi Edogrand' },
+            { id: 17, day: 3, time: '18:15', title: '도쿄역 마루노우치 (바나나 브륄레)', titleJp: '東京駅 丸の内 (バナナブリュレ)', category: '관광', desc: '클래식한 붉은 벽돌 역사를 배경으로 사진을 찍고, 한정판 디저트를 구매합니다.', descJp: 'クラシックな赤レンガの駅舎を背景に写真を撮り、限定デザートを購入します。', transitInfo: '마루노우치선 (약 20분)', transitInfoJp: '丸ノ内線 (約20分)', mapQuery: 'Tokyo Station Marunouchi Square' },
+            { id: 18, day: 3, time: '19:15', title: '시부야 구경 및 쇼핑 (몽벨, 유니클로 등)', titleJp: '渋谷 散策＆ショッピング', category: '관광', desc: '도쿄의 중심 시부야에서 몽벨, 유니클로 등 주요 매장을 방문하며 폭풍 쇼핑!', descJp: '東京の中心・渋谷でモンベル、ユニクロなど主要店舗を訪問しショッピング！', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shibuya Crossing' },
             { id: 19, day: 3, time: '20:30', title: '시부야 야끼니꾸', titleJp: '渋谷 焼肉', category: '음식점', desc: '시부야의 활기찬 분위기 속에서 즐기는 맛있는 야끼니꾸 저녁 식사.', descJp: '渋谷の活気ある雰囲気の中で楽しむ美味しい焼肉の夕食。', transitInfo: '야마노테선 (약 20분)', transitInfoJp: '山手線 (約20分)', mapQuery: 'Yakiniku Shibuya' },
             { id: 20, day: 3, time: '22:30', title: '이케부쿠로 복귀', titleJp: '池袋 帰宿', category: '이동', desc: '숙소로 돌아와 내일을 위해 휴식합니다.', descJp: '宿に戻り、明日のために休息します。', transitInfo: '', transitInfoJp: '', mapQuery: 'Ikebukuro' },
 
+            // 4일차
             { id: 21, day: 4, time: '08:30', title: '아침 식사', titleJp: '朝食', category: '음식점', desc: '이케부쿠로 인근에서 든든하게 아침 식사를 합니다.', descJp: '池袋近辺でしっかり朝食をとります。', transitInfo: '야마노테선 -> 린카이선 (약 45분)', transitInfoJp: '山手線 -> りんかい線 (約45分)', mapQuery: 'Ikebukuro Station' },
             { id: 22, day: 4, time: '10:30', title: '아리아케 도라에몽 팝업', titleJp: '有明 ドラえもんポップアップ', category: '관광', desc: '팬들을 위한 특별한 전시와 굿즈를 만날 수 있는 기간 한정 팝업 스토어.', descJp: 'ファンのための特別な展示やグッズに出会える期間限定ポップアップストア。', transitInfo: '린카이선 -> 사이쿄선 (약 40분)', transitInfoJp: 'りんかい線 -> 埼京線 (約40分)', mapQuery: 'Ariake, Tokyo' },
             { id: 23, day: 4, time: '15:00', title: '신주쿠 딸기뷔페', titleJp: '新宿 いちごビュッフェ', category: '카페', desc: '신선하고 달콤한 제철 딸기로 만든 다양한 디저트를 마음껏 즐길 수 있습니다.', descJp: '新鮮で甘い旬のいちごを使った様々なデザートを存分に楽しめます。', transitInfo: '도보 이동', transitInfoJp: '徒歩移動', mapQuery: 'Shinjuku Station' },
@@ -109,6 +116,7 @@
             { id: 27, day: 4, time: '21:30', title: '이케부쿠로 복귀 및 짐 찾기', titleJp: '池袋 帰宿・荷物受け取り', category: '이동', desc: '친구 집에서 짐을 찾고 공항으로 갈 준비를 합니다.', descJp: '友人の家で荷物を受け取り、空港へ行く準備をします。', transitInfo: '야마노테선 -> 모노레일 (약 1시간)', transitInfoJp: '山手線 -> モノレール (約1時間)', mapQuery: 'Ikebukuro' },
             { id: 28, day: 4, time: '22:30', title: '하네다 공항 이동', titleJp: '羽田空港へ移動', category: '이동', desc: '아쉬움을 뒤로하고 하네다 공항으로 이동합니다.', descJp: '名残惜しさを後に羽田空港へ移動します。', transitInfo: '출국 수속', transitInfoJp: '出国手続き', mapQuery: 'Haneda Airport' },
             
+            // 5일차
             { id: 29, day: 5, time: '02:00', title: '하네다 공항 출발', titleJp: '羽田空港 出発', category: '이동', desc: '대한항공 탑승. 04:35 인천공항 도착 예정.', descJp: '大韓航空搭乗。04:35仁川空港到着予定。', transitInfo: '', transitInfoJp: '', mapQuery: 'Haneda Airport' }
         ];
 
